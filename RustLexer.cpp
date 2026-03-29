@@ -147,7 +147,14 @@ void RustLexer::Tokenize(const std::string& code, TokenList& outTokens) {
                 size_t st = i;
                 i += 2; col += 2;
                 while (i < code.size() && code[i] != '\n') { ++i; ++col; } // 跳过单行注释内容
-                PushToken(outTokens, TT_Comment, code.substr(st, i - st), sLine, sCol); // 将单行注释作为一个 Token 添加到输出列表中
+
+                // 计算长度，剔除可能包含的行尾 \r 字符
+                size_t len = i - st;
+                if (len > 0 && code[st + len - 1] == '\r') {
+                    len--;
+                }
+
+                PushToken(outTokens, TT_Comment, code.substr(st, len), sLine, sCol); // 将单行注释作为一个 Token 添加到输出列表中
                 continue;
             }
             if (i + 1 < code.size() && code[i + 1] == '*') { // 多行注释
@@ -163,6 +170,7 @@ void RustLexer::Tokenize(const std::string& code, TokenList& outTokens) {
                 continue;
             }
         }
+
 
         //处理字符串
         if (ch == '"') {
